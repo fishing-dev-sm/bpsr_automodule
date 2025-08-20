@@ -1,0 +1,66 @@
+---
+description: 组合优化算法和计算逻辑
+---
+
+# 组合优化算法和计算逻辑
+
+## 核心算法类
+
+### ModuleOCR类 ([module_ocr_optimizer.py](mdc:module_ocr_optimizer.py))
+
+负责图像处理和文本识别：
+
+```python
+class ModuleOCR:
+    def preprocess_image() -> np.ndarray  # 图像预处理
+    def extract_numbers_from_image() -> List[int]  # 专门数字识别
+    def extract_text_from_image() -> str  # 文本识别
+    def parse_module_attributes() -> Dict[str, int]  # 属性解析
+```
+
+### ModuleCombinationOptimizer类
+
+负责组合计算和优化：
+
+```python  
+class ModuleCombinationOptimizer:
+    def calculate_combination_score() -> Dict[str, int]  # 计算组合属性
+    def evaluate_combination() -> Tuple[int, List[str]]  # 评估组合价值
+    def find_optimal_combinations() -> List[Dict]  # 找出最优组合
+    def group_by_maxed_attributes() -> Dict[str, List[Dict]]  # 按最大化属性分组
+```
+
+## 组合生成策略
+
+使用 `itertools.combinations` 生成所有可能的模组组合：
+- 1个模组：C(n,1)
+- 2个模组：C(n,2)  
+- 3个模组：C(n,3)
+- 4个模组：C(n,4)
+
+## 评分机制
+
+### 属性叠加规则
+
+```python
+total_attributes[attr] = min(total_attributes[attr], 20)  # 20点上限
+```
+
+### 组合评分
+
+- 总分数 = 所有有效属性值的和
+- 最大化属性 = 达到20点的属性列表
+- 过滤条件 = 任意属性 >= 16点
+
+### 结果排序
+
+按总分数从高到低排序，然后按最大化属性分组：
+- "力量加持+智力加持 最大化组合"
+- "敏捷加持 最大化组合"  
+- "无最大化属性"
+
+## 性能优化
+
+- 早期过滤：跳过低分组合
+- 结果限制：每组最多显示10个方案
+- 内存管理：大数据集时限制组合数量

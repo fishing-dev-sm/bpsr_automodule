@@ -1,0 +1,89 @@
+---
+description: 游戏属性映射和数据结构定义
+---
+
+# 游戏属性映射和数据结构
+
+## 属性名称映射
+
+在 [module_ocr_optimizer.py](mdc:module_ocr_optimizer.py) 中定义的完整属性映射表：
+
+```python
+attribute_names = {
+    '敏捷加持': 'agility_boost',
+    '特攻伤害加持': 'special_attack_damage',
+    '精英打击': 'elite_strike',
+    '暴击专注': 'critical_focus',
+    '极·伤害叠加': 'extreme_damage_stack',
+    '极·灵活身法': 'extreme_agility',
+    '极·生命波动': 'extreme_life_fluctuation',
+    '力量加持': 'strength_boost',
+    '智力加持': 'intelligence_boost',
+    '特攻治疗加持': 'special_healing_boost',
+    '专精治疗加持': 'specialized_healing',
+    '抵御魔法': 'magic_resistance',
+    '抵御物理': 'physical_resistance',
+    '施法专注': 'spellcasting_focus',
+    '攻速专注': 'attack_speed_focus'
+}
+```
+
+## 数据结构定义
+
+### 模组数据结构
+
+```python
+# 单个模组
+{
+    "模组名称": {
+        "agility_boost": 8,      # 敏捷加持+8
+        "critical_focus": 5      # 暴击专注+5
+    }
+}
+
+# 组合方案
+{
+    "modules": ["模组A", "模组B"],           # 模组列表
+    "attributes": {"agility_boost": 15},     # 总属性
+    "total_score": 35,                       # 总分数
+    "maxed_attributes": ["agility_boost"],   # 最大化属性
+    "module_count": 2                        # 模组数量
+}
+```
+
+### Web API数据格式
+
+```javascript
+// 前端显示格式
+{
+    modules: ["模组A", "模组B"],
+    module_details: [{
+        name: "模组A", 
+        attributes: {"敏捷加持": 8, "暴击专注": 5}
+    }],
+    total_score: 35,
+    attributes: {
+        "敏捷加持": {value: 15, is_maxed: false, efficiency: "15/20"}
+    }
+}
+```
+
+## 关键词匹配
+
+当精确匹配失败时，使用关键词匹配：
+
+```python
+keywords = {
+    '敏捷': 'agility_boost',
+    '力量': 'strength_boost', 
+    '智力': 'intelligence_boost',
+    '暴击': 'critical_focus',
+    '治疗': 'specialized_healing',
+    '伤害': 'extreme_damage_stack',
+    '物理': 'physical_resistance',
+    '魔法': 'magic_resistance',
+    '精英': 'elite_strike',
+    '施法': 'spellcasting_focus',
+    '攻速': 'attack_speed_focus'
+}
+```

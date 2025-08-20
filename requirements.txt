@@ -1,0 +1,19 @@
+# 模组OCR优化器依赖包
+# 安装命令: pip install -r requirements.txt
+
+# OCR和图像处理
+numpy<2.0.0
+opencv-python>=4.8.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+
+# Web UI框架
+Flask>=2.0.0
+Flask-CORS>=4.0.0
+
+# 注意: itertools是Python内置库，无需安装
+# 
+# Windows用户额外需要:
+# 1. 安装Tesseract OCR引擎: https://github.com/UB-Mannheim/tesseract/wiki
+# 2. 安装中文语言包
+# 3. 添加Tesseract路径到系统环境变量PATH

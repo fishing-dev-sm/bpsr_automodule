@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模组OCR优化器 - Web UI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-cogs"></i> 模组OCR优化器</h1>
+                <p>智能识别游戏模组属性，计算最优装备组合方案</p>
+            </div>
+        </header>
+
+        <!-- 控制面板 -->
+        <section class="control-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-play-circle"></i> 控制面板</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-section">
+                        <div class="info-item">
+                            <i class="fas fa-folder"></i>
+                            <span>截图文件夹状态：</span>
+                            <span id="file-status" class="status-text">检查中...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="button-section">
+                        <button id="start-btn" class="btn btn-primary" disabled>
+                            <i class="fas fa-rocket"></i> 开始OCR识别和优化计算
+                        </button>
+                    </div>
+                    
+                    <!-- 进度条 -->
+                    <div id="progress-section" class="progress-section" style="display: none;">
+                        <div class="progress-info">
+                            <span id="progress-text">准备中...</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 结果展示区 -->
+        <section id="results-section" class="results-section" style="display: none;">
+            <!-- 概要信息 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-bar"></i> 计算概要</h2>
+                </div>
+                <div class="card-body">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-number" id="total-modules">0</div>
+                            <div class="summary-label">识别模组数</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="total-combinations">0</div>
+                            <div class="summary-label">有效组合数</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="max-score">0</div>
+                            <div class="summary-label">最高收益</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="calc-time">0s</div>
+                            <div class="summary-label">计算用时</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 识别的模组 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-puzzle-piece"></i> 识别的模组</h2>
+                </div>
+                <div class="card-body">
+                    <div id="modules-grid" class="modules-grid"></div>
+                </div>
+            </div>
+
+            <!-- 最优组合方案 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-trophy"></i> 最优组合方案</h2>
+                    <div class="filter-controls">
+                        <select id="group-filter" class="filter-select">
+                            <option value="">所有组合</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="combinations-container" class="combinations-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 错误提示 -->
+        <div id="error-message" class="error-message" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="error-text"></span>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

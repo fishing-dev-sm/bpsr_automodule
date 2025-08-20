@@ -1,0 +1,37 @@
+---
+alwaysApply: true
+---
+
+# 模组OCR优化器项目结构指南
+
+这是一个游戏模组属性识别和最优装备组合计算的Python程序，包含命令行版本和Web UI版本。
+
+## 核心文件结构
+
+- [module_ocr_optimizer.py](mdc:module_ocr_optimizer.py) - 主程序，包含OCR识别和组合优化算法
+- [web_app.py](mdc:web_app.py) - Flask Web应用，提供浏览器界面
+- [requirements.txt](mdc:requirements.txt) - Python依赖包列表
+
+## Web UI组件
+
+- [templates/index.html](mdc:templates/index.html) - 主页面HTML模板
+- [static/css/style.css](mdc:static/css/style.css) - CSS样式文件  
+- [static/js/app.js](mdc:static/js/app.js) - 前端JavaScript逻辑
+
+## 数据文件夹
+
+- `screenshot/` - 存放模组截图文件（PNG/JPG格式）
+- `optimization_results.json` - 程序输出的计算结果
+
+## Windows部署文件
+
+- [install_windows.bat](mdc:install_windows.bat) - 自动安装脚本
+- [run_ocr.bat](mdc:run_ocr.bat) - 命令行版本启动脚本
+- [start_webui.bat](mdc:start_webui.bat) - Web UI启动脚本
+
+## 游戏规则
+
+- 模组属性：1-3种属性，每个属性1-10点
+- 装备限制：最多4个模组
+- 属性上限：单属性叠加20点收益最大，超过无效
+- 过滤规则：低于16点总和的组合被视为垃圾组合

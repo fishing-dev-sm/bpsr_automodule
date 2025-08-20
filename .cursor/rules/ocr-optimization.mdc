@@ -1,0 +1,40 @@
+---
+globs: *.py
+description: OCR识别和数字处理优化规则
+---
+
+# OCR识别和数字处理优化规则
+
+## OCR识别策略
+
+在 [module_ocr_optimizer.py](mdc:module_ocr_optimizer.py) 中实现了多重OCR识别策略：
+
+### 数字识别问题处理
+
+1. **"+9"格式识别**：OCR可能将"暴击专注+9"识别为"暴击专注19"
+2. **个位数提取**：当识别到超过10的数字时，使用 `num % 10` 提取个位数
+3. **多策略识别**：
+   - 策略1：识别"+数字"格式 (tesseract_char_whitelist=0123456789+)
+   - 策略2：仅识别数字 (tesseract_char_whitelist=0123456789)
+   - 策略3：图像增强后识别
+   - 策略4：多种PSM模式尝试
+
+### 属性名称匹配
+
+支持多种匹配模式：
+- 精确匹配：如"暴击专注"
+- +格式匹配：如"暴击专注+9"  
+- 直接数字格式：如"暴击专注19"（处理OCR误识别）
+- 关键词匹配：如"暴击"→"暴击专注"
+
+### Tesseract配置
+
+Windows环境下自动检测Tesseract路径：
+- `C:\Program Files\Tesseract-OCR\tesseract.exe`
+- `C:\Program Files (x86)\Tesseract-OCR\tesseract.exe`
+
+## 数值范围限制
+
+- 模组属性值：1-10点
+- 单属性上限：20点
+- 垃圾组合阈值：16点

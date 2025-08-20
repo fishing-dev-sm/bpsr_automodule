@@ -1,0 +1,75 @@
+模组OCR优化器 - 文件清单
+========================================
+
+必需文件:
+├── module_ocr_optimizer.py     # 主程序 (必需)
+├── web_app.py                  # Web UI应用 (新增)
+├── requirements.txt            # Python依赖列表 (必需)
+├── install_windows.bat         # Windows自动安装脚本 (推荐)
+├── run_ocr.bat                # Windows命令行运行脚本 (可选)
+├── start_webui.bat            # Windows Web UI启动脚本 (推荐)
+├── templates/                  # Web UI模板文件夹 (必需)
+│   └── index.html             # 主页面模板
+├── static/                     # Web UI静态资源 (必需)
+│   ├── css/
+│   │   └── style.css          # 样式文件
+│   └── js/
+│       └── app.js             # JavaScript应用逻辑
+└── screenshot/                 # 截图文件夹 (必需)
+    ├── Screenshot 2025-08-19 132840.png
+    ├── Screenshot 2025-08-19 133626.png
+    ├── Screenshot 2025-08-19 133842.png
+    ├── Screenshot 2025-08-19 133848.png
+    ├── Screenshot 2025-08-19 133852.png
+    ├── Screenshot 2025-08-19 133859.png
+    ├── Screenshot 2025-08-19 133902.png
+    ├── Screenshot 2025-08-19 133906.png
+    └── Screenshot 2025-08-19 133911.png
+
+文档文件:
+├── README.md                   # 详细说明文档 (可选)
+├── Windows使用指南.md          # Windows专用指南 (推荐)
+├── WebUI使用指南.md            # Web UI使用指南 (推荐)
+└── 文件清单.txt               # 本文件 (可选)
+
+输出文件 (程序运行后生成):
+└── optimization_results.json  # 计算结果文件
+
+传输到Windows的最小文件集:
+========================================
+核心文件 (命令行版本):
+1. module_ocr_optimizer.py
+2. requirements.txt  
+3. install_windows.bat
+4. run_ocr.bat
+5. Windows使用指南.md
+6. screenshot/ 文件夹及其中的所有截图
+
+Web UI版本 (推荐):
+1. 上述所有核心文件
+2. web_app.py
+3. start_webui.bat
+4. WebUI使用指南.md
+5. templates/ 文件夹及其中的所有文件
+6. static/ 文件夹及其中的所有文件
+
+安装运行流程:
+========================================
+方法一 - Web UI版本 (推荐):
+1. 将所有文件复制到Windows电脑
+2. 双击运行 install_windows.bat (安装环境)
+3. 双击运行 start_webui.bat (启动Web界面)
+4. 在浏览器中操作和查看结果
+
+方法二 - 命令行版本:
+1. 将核心文件复制到Windows电脑
+2. 双击运行 install_windows.bat (安装环境)
+3. 双击运行 run_ocr.bat (执行计算)
+4. 查看 optimization_results.json (结果文件)
+
+注意事项:
+========================================
+- 确保screenshot文件夹中包含所有模组截图
+- Windows需要先安装Python和Tesseract OCR
+- 建议使用管理员权限运行安装脚本
+- 网络环境需要能访问pip源下载依赖包

@@ -1,0 +1,60 @@
+---
+globs: templates/*.html,static/css/*.css,static/js/*.js
+description: Web UI开发指南和最佳实践
+---
+
+# Web UI开发指南
+
+## 架构概述
+
+Web UI采用Flask + 原生JavaScript架构，不依赖复杂框架，确保易于部署和维护。
+
+## 前后端通信
+
+### API端点 ([web_app.py](mdc:web_app.py))
+
+- `GET /` - 主页面
+- `POST /api/start_calculation` - 启动OCR计算
+- `GET /api/calculation_status` - 获取计算状态（轮询）
+- `GET /api/results` - 获取计算结果
+- `GET /api/screenshot_info` - 检查截图文件夹状态
+
+### 前端状态管理 ([static/js/app.js](mdc:static/js/app.js))
+
+使用类 `ModuleOptimizerApp` 管理应用状态：
+- `isCalculating` - 计算状态标志
+- `currentResults` - 当前计算结果
+- `pollCalculationStatus()` - 1秒间隔轮询计算进度
+
+## 数据格式转换
+
+### 属性名称中文化
+
+- 后端：英文键名 (如 `agility_boost`)
+- 前端：中文显示 (如 `敏捷加持`) 
+- 转换函数：`convert_group_name_to_chinese()` 和 `format_attribute_name()`
+
+### 模组详细信息显示
+
+组合结果不再显示无意义的文件名，而是显示：
+```javascript
+module_details: [{
+    name: "Screenshot 2025-08-19 151408",
+    attributes: {"敏捷加持": 8, "暴击专注": 5}
+}]
+```
+
+## UI设计原则
+
+### 响应式布局 ([static/css/style.css](mdc:static/css/style.css))
+
+- 使用CSS Grid和Flexbox
+- 移动设备断点：768px
+- 卡片式设计，渐变背景
+
+### 用户体验
+
+- 实时进度反馈
+- 错误信息自动隐藏（5秒）
+- 加载状态指示器
+- 结果分组和筛选功能
