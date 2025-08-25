@@ -221,14 +221,15 @@ class ModuleOCR:
         """
         attr_count = len(attributes)
         
-        # 保持紫色判断逻辑不变
-        if attr_count == 2:
-            return 'epic'
-        
+        # 若回退推断为三词条及以上，优先判定为金色（覆盖仅识别到2词条的情况）
+        if fallback_entry_count is not None and fallback_entry_count >= 3:
+            return 'legendary'
+
+        # 已识别达到三词条（正常金色）
         if attr_count >= 3:
             return 'legendary'
-        
-        # 使用回退词条数进行判断（仅在已识别<2时启用，以避免破坏原紫色逻辑）
+
+        # 使用回退词条数进行判断
         if fallback_entry_count is not None:
             if fallback_entry_count >= 3:
                 return 'legendary'
@@ -238,6 +239,10 @@ class ModuleOCR:
                 return 'rare'
             return 'common'
         
+        # 未提供回退时，保持原有紫色逻辑
+        if attr_count == 2:
+            return 'epic'
+
         # 无回退信息时，按已识别结果返回
         if attr_count == 1:
             return 'rare'
@@ -466,7 +471,8 @@ class ModuleOCR:
             'quality': quality,
             'quality_name': quality_names.get(quality, '未知'),
             # 展示的词条数优先使用回退推断结果，以反映真实词条个数
-            'attribute_count': max(len(attributes), inferred_entry_count)
+            'attribute_count': max(len(attributes), inferred_entry_count),
+            'inferred_entry_count': inferred_entry_count
         }
     
     def scan_all_modules(self, screenshot_dir: str) -> Dict[str, Dict]:

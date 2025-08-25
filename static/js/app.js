@@ -195,10 +195,13 @@ class ModuleOptimizerApp {
                 </div>
             `).join('');
 
+        const entryCount = moduleData.attribute_count || Object.keys(moduleData.attributes).length;
+        const inferredCount = moduleData.inferred_entry_count || entryCount;
+
         card.innerHTML = `
             <div class="module-header">
                 <div class="module-name">${name}</div>
-                <div class="module-quality ${qualityClass}">${moduleData.quality_name}</div>
+                <div class="module-quality ${qualityClass}">${moduleData.quality_name}（${inferredCount}条）</div>
             </div>
             <div class="module-attributes">
                 ${attributesHtml}
@@ -264,7 +267,7 @@ class ModuleOptimizerApp {
                     <div class="module-detail">
                         <div class="module-detail-header">
                             <div class="module-detail-name">${module.name}</div>
-                            <div class="module-detail-quality ${qualityClass}">${module.quality_name}</div>
+                            <div class="module-detail-quality ${qualityClass}">${module.quality_name}（${module.inferred_entry_count || module.attribute_count || Object.keys(module.attributes).length}条）</div>
                         </div>
                         <div class="module-detail-attrs">${attrsHtml || '无属性数据'}</div>
                     </div>

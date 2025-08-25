@@ -190,7 +190,8 @@ def get_results():
             'attributes': formatted_attrs,
             'quality': module_data['quality'],
             'quality_name': module_data['quality_name'],
-            'attribute_count': module_data['attribute_count']
+            'attribute_count': module_data.get('attribute_count', len(module_data['attributes'])),
+            'inferred_entry_count': module_data.get('inferred_entry_count', len(module_data['attributes']))
         }
     
     # 格式化分组组合数据
@@ -216,7 +217,8 @@ def get_results():
                         'attributes': chinese_attrs,
                         'quality': module_data['quality'],
                         'quality_name': module_data['quality_name'],
-                        'attribute_count': module_data['attribute_count']
+                        'attribute_count': module_data.get('attribute_count', len(module_data['attributes'])),
+                        'inferred_entry_count': module_data.get('inferred_entry_count', len(module_data['attributes']))
                     })
                 else:
                     # 如果找不到模组数据，只显示名称
