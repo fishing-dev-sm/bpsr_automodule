@@ -258,6 +258,22 @@ class ModuleOCR:
         
         print(f"  解析文本内容: {repr(all_text[:300])}")
         
+        # 常见OCR误识别别名替换 -> 标准属性名
+        alias_map = {
+            '攻适专注': '攻速专注',   # 速->适
+            '攻逝专注': '攻速专注',   # OCR相近
+            '攻速专主': '攻速专注',
+            '章迁专注': '施法专注',   # 施法->章迁（常见形近）
+            '幸运专注': '暴击专注',   # 暴击->幸运（个别截图)
+            '暴机专注': '暴击专注',
+            '暴級专注': '暴击专注',
+            '施法专主': '施法专注',
+        }
+        for alias, canonical in alias_map.items():
+            if alias in all_text:
+                all_text = all_text.replace(alias, canonical)
+                print(f"    文本规范化: {alias} -> {canonical}")
+
         # 获取专门识别的数字
         valid_numbers = []
         if image_path:
@@ -312,8 +328,9 @@ class ModuleOCR:
                         print(f"    数字修正: {attr_name}{num} -> {digit}")
         
         # 3. 匹配单独的数字（但排除已经在属性名后的）
+        #    允许数字前后出现分隔符或噪声字符（如'|'、'。'、引号等）
         standalone_numbers = []
-        for match in re.finditer(r'\b(\d+)\b', all_text):
+        for match in re.finditer(r'(?<![A-Za-z\u4e00-\u9fa5])([1-9]\d?)(?![A-Za-z\u4e00-\u9fa5])', all_text):
             num = int(match.group(1))
             start_pos = match.start()
             before_text = all_text[max(0, start_pos-15):start_pos]
@@ -352,7 +369,7 @@ class ModuleOCR:
         # 找到的属性名称
         found_attributes = []
         
-        # 尝试匹配属性名称
+        # 尝试匹配属性名称（在规范化文本后进行）
         for attr_name, attr_key in self.attribute_names.items():
             # 尝试精确匹配（包括带+数字的格式）
             if attr_name in all_text:
@@ -420,7 +437,8 @@ class ModuleOCR:
                 # 尝试从文本中提取这个属性紧邻的数字
                 for pattern in [
                     rf'{re.escape(attr_name)}\+(\d+)',  # "属性名+数字"
-                    rf'{re.escape(attr_name)}(\d+)',    # "属性名数字"
+                    rf'{re.escape(attr_name)}\s*\+(\d+)',  # 允许空格
+                    rf'{re.escape(attr_name)}\s*(\d+)',    # 允许紧贴或空格
                 ]:
                     matches = re.findall(pattern, all_text)
                     if matches:
