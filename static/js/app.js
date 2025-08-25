@@ -173,17 +173,21 @@ class ModuleOptimizerApp {
         const container = document.getElementById('modules-grid');
         container.innerHTML = '';
 
-        for (const [moduleName, attributes] of Object.entries(modules)) {
-            const moduleCard = this.createModuleCard(moduleName, attributes);
+        for (const [moduleName, moduleData] of Object.entries(modules)) {
+            const moduleCard = this.createModuleCard(moduleName, moduleData);
             container.appendChild(moduleCard);
         }
     }
 
-    createModuleCard(name, attributes) {
+    createModuleCard(name, moduleData) {
         const card = document.createElement('div');
         card.className = 'module-card';
+        
+        // 添加品质样式类
+        const qualityClass = this.getQualityClass(moduleData.quality);
+        card.classList.add(qualityClass);
 
-        const attributesHtml = Object.entries(attributes)
+        const attributesHtml = Object.entries(moduleData.attributes)
             .map(([attrName, value]) => `
                 <div class="attribute-item">
                     <span class="attribute-name">${attrName}</span>
@@ -192,13 +196,27 @@ class ModuleOptimizerApp {
             `).join('');
 
         card.innerHTML = `
-            <div class="module-name">${name}</div>
+            <div class="module-header">
+                <div class="module-name">${name}</div>
+                <div class="module-quality ${qualityClass}">${moduleData.quality_name}</div>
+            </div>
             <div class="module-attributes">
                 ${attributesHtml}
             </div>
         `;
 
         return card;
+    }
+
+    getQualityClass(quality) {
+        const qualityMap = {
+            'legendary': 'quality-legendary',
+            'epic': 'quality-epic',
+            'rare': 'quality-rare',
+            'common': 'quality-common',
+            'unknown': 'quality-unknown'
+        };
+        return qualityMap[quality] || 'quality-unknown';
     }
 
     displayCombinations(groupedCombinations) {
@@ -240,9 +258,14 @@ class ModuleOptimizerApp {
                     .map(([attrName, value]) => `${attrName}+${value}`)
                     .join(', ');
                 
+                const qualityClass = this.getQualityClass(module.quality);
+                
                 return `
                     <div class="module-detail">
-                        <div class="module-detail-name">${module.name}</div>
+                        <div class="module-detail-header">
+                            <div class="module-detail-name">${module.name}</div>
+                            <div class="module-detail-quality ${qualityClass}">${module.quality_name}</div>
+                        </div>
                         <div class="module-detail-attrs">${attrsHtml || '无属性数据'}</div>
                     </div>
                 `;

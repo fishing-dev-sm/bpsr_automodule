@@ -207,11 +207,56 @@ body {
     background: #ede9fe;
 }
 
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .module-name {
     font-weight: bold;
     color: #4f46e5;
-    margin-bottom: 10px;
     font-size: 1.1rem;
+}
+
+.module-quality {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+/* 品质样式 */
+.quality-legendary {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #8b4513;
+    border: 1px solid #daa520;
+}
+
+.quality-epic {
+    background: linear-gradient(135deg, #9932cc, #ba55d3);
+    color: white;
+    border: 1px solid #8a2be2;
+}
+
+.quality-rare {
+    background: linear-gradient(135deg, #4169e1, #6495ed);
+    color: white;
+    border: 1px solid #0000cd;
+}
+
+.quality-common {
+    background: linear-gradient(135deg, #a9a9a9, #c0c0c0);
+    color: white;
+    border: 1px solid #696969;
+}
+
+.quality-unknown {
+    background: linear-gradient(135deg, #696969, #808080);
+    color: white;
+    border: 1px solid #404040;
 }
 
 .module-attributes {
@@ -261,11 +306,25 @@ body {
     border-left: 3px solid #6366f1;
 }
 
+.module-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
 .module-detail-name {
     font-weight: bold;
     color: #374151;
-    margin-bottom: 5px;
     font-size: 0.9rem;
+}
+
+.module-detail-quality {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: white;
 }
 
 .module-detail-attrs {

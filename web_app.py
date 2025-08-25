@@ -181,11 +181,17 @@ def get_results():
     }
     
     # 格式化模组数据
-    for module_name, attrs in calculation_results['modules'].items():
+    for module_name, module_data in calculation_results['modules'].items():
         formatted_attrs = {}
-        for attr_key, value in attrs.items():
+        for attr_key, value in module_data['attributes'].items():
             formatted_attrs[format_attribute_name(attr_key)] = value
-        formatted_results['modules'][module_name] = formatted_attrs
+        
+        formatted_results['modules'][module_name] = {
+            'attributes': formatted_attrs,
+            'quality': module_data['quality'],
+            'quality_name': module_data['quality_name'],
+            'attribute_count': module_data['attribute_count']
+        }
     
     # 格式化分组组合数据
     for group_name, combos in calculation_results['grouped_results'].items():
@@ -198,22 +204,28 @@ def get_results():
             module_details = []
             for module_name in combo['modules']:
                 if module_name in calculation_results['modules']:
-                    module_attrs = calculation_results['modules'][module_name]
+                    module_data = calculation_results['modules'][module_name]
                     # 格式化为中文属性名
                     chinese_attrs = {}
-                    for attr_key, value in module_attrs.items():
+                    for attr_key, value in module_data['attributes'].items():
                         chinese_name = format_attribute_name(attr_key)
                         chinese_attrs[chinese_name] = value
                     
                     module_details.append({
                         'name': module_name,
-                        'attributes': chinese_attrs
+                        'attributes': chinese_attrs,
+                        'quality': module_data['quality'],
+                        'quality_name': module_data['quality_name'],
+                        'attribute_count': module_data['attribute_count']
                     })
                 else:
                     # 如果找不到模组数据，只显示名称
                     module_details.append({
                         'name': module_name,
-                        'attributes': {}
+                        'attributes': {},
+                        'quality': 'unknown',
+                        'quality_name': '未知',
+                        'attribute_count': 0
                     })
             
             formatted_combo = {

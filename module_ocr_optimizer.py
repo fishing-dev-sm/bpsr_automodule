@@ -207,8 +207,21 @@ class ModuleOCR:
             print(f"OCR识别失败 {image_path}: {str(e)}")
             return ""
     
-    def parse_module_attributes(self, text: str, filename: str, image_path: str = None) -> Dict[str, int]:
-        """解析模组属性和数值"""
+    def classify_module_quality(self, attributes: Dict[str, int]) -> str:
+        """根据属性数量分类模组品质"""
+        attr_count = len(attributes)
+        
+        if attr_count >= 3:
+            return 'legendary'  # 金色 - 3种或更多属性
+        elif attr_count == 2:
+            return 'epic'       # 紫色 - 2种属性
+        elif attr_count == 1:
+            return 'rare'       # 蓝色 - 1种属性
+        else:
+            return 'common'     # 白色 - 无有效属性
+
+    def parse_module_attributes(self, text: str, filename: str, image_path: str = None) -> Dict[str, any]:
+        """解析模组属性和数值，并分类品质"""
         attributes = {}
         
         # 分行处理文本
@@ -403,9 +416,24 @@ class ModuleOCR:
                         attributes[attr_key] = all_candidate_numbers[0]
                         print(f"    重复分配: {attr_name} = {all_candidate_numbers[0]} ({match_type})")
         
-        return attributes
+        # 分类模组品质
+        quality = self.classify_module_quality(attributes)
+        quality_names = {
+            'legendary': '金色',
+            'epic': '紫色', 
+            'rare': '蓝色',
+            'common': '白色'
+        }
+        
+        # 返回包含属性和品质的字典
+        return {
+            'attributes': attributes,
+            'quality': quality,
+            'quality_name': quality_names.get(quality, '未知'),
+            'attribute_count': len(attributes)
+        }
     
-    def scan_all_modules(self, screenshot_dir: str) -> Dict[str, Dict[str, int]]:
+    def scan_all_modules(self, screenshot_dir: str) -> Dict[str, Dict]:
         """扫描所有模组截图"""
         modules = {}
         
@@ -421,13 +449,14 @@ class ModuleOCR:
             # OCR识别
             text = self.extract_text_from_image(file_path)
             
-            # 解析属性（传递图像路径用于数字识别）
-            attributes = self.parse_module_attributes(text, filename, file_path)
+            # 解析属性和品质（传递图像路径用于数字识别）
+            module_data = self.parse_module_attributes(text, filename, file_path)
             
-            if attributes:
+            if module_data and module_data['attributes']:
                 module_name = filename.replace('.png', '').replace('.jpg', '').replace('.jpeg', '')
-                modules[module_name] = attributes
-                print(f"  识别到属性: {attributes}")
+                modules[module_name] = module_data
+                print(f"  识别到属性: {module_data['attributes']}")
+                print(f"  模组品质: {module_data['quality_name']} ({module_data['attribute_count']}种属性)")
             else:
                 print(f"  未识别到有效属性")
         
@@ -448,7 +477,8 @@ class ModuleCombinationOptimizer:
         total_attributes = {}
         
         for module_name in module_combination:
-            module_attrs = self.modules[module_name]
+            module_data = self.modules[module_name]
+            module_attrs = module_data['attributes']  # 获取属性字典
             for attr, value in module_attrs.items():
                 total_attributes[attr] = total_attributes.get(attr, 0) + value
         
@@ -564,9 +594,9 @@ def main():
         return
     
     print(f"\n成功识别 {len(modules)} 个模组:")
-    for module_name, attrs in modules.items():
-        print(f"  {module_name}:")
-        for attr_key, value in attrs.items():
+    for module_name, module_data in modules.items():
+        print(f"  {module_name} [{module_data['quality_name']}品质]:")
+        for attr_key, value in module_data['attributes'].items():
             attr_name = format_attribute_name(attr_key)
             print(f"    {attr_name}: {value}")
     
