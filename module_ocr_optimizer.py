@@ -207,9 +207,15 @@ class ModuleOCR:
             print(f"OCR识别失败 {image_path}: {str(e)}")
             return ""
     
-    def classify_module_quality(self, attributes: Dict[str, int]) -> str:
-        """根据属性数量分类模组品质"""
+    def classify_module_quality(self, attributes: Dict[str, int], entry_count_hint: Optional[int] = None) -> str:
+        """根据属性数量分类模组品质
+        
+        优先使用词条数量提示(entry_count_hint)，当其存在并且不小于已识别属性数时，以其为准；
+        否则退化为使用已识别属性数进行判定。
+        """
         attr_count = len(attributes)
+        if entry_count_hint is not None and entry_count_hint >= attr_count:
+            attr_count = entry_count_hint
         
         if attr_count >= 3:
             return 'legendary'  # 金色 - 3种或更多属性
@@ -239,7 +245,7 @@ class ModuleOCR:
         all_numbers = []
         
         # 1. 匹配 "+数字" 格式
-        plus_matches = re.findall(r'\+(\d+)', all_text)
+        plus_matches = re.findall(r'\+\s*(\d+)', all_text)
         for match in plus_matches:
             num = int(match)
             if 1 <= num <= 10:
@@ -305,7 +311,8 @@ class ModuleOCR:
         
         # 合并专门识别的数字和文本提取的数字
         text_numbers = all_numbers
-        all_candidate_numbers = list(set(valid_numbers + text_numbers))
+        # 注意：这里保留重复计数信息以便估算词条数量
+        all_candidate_numbers = valid_numbers + text_numbers
         
         print(f"  候选数字: {all_candidate_numbers}")
         
@@ -416,8 +423,18 @@ class ModuleOCR:
                         attributes[attr_key] = all_candidate_numbers[0]
                         print(f"    重复分配: {attr_name} = {all_candidate_numbers[0]} ({match_type})")
         
-        # 分类模组品质
-        quality = self.classify_module_quality(attributes)
+        # 基于文本中出现的“+数字”次数估算词条数量（不去重）
+        # 退化策略：若没有“+数字”，则使用所有数字的出现次数
+        entry_count_from_plus = len(re.findall(r'\+\s*\d+', all_text))
+        entry_count_from_digits = len(re.findall(r'\b\d+\b', all_text))
+        # 词条数量估算，限制在1-3之间
+        estimated_entry_count = max(len(attributes), entry_count_from_plus if entry_count_from_plus > 0 else entry_count_from_digits)
+        estimated_entry_count = max(0, min(3, estimated_entry_count))
+        if estimated_entry_count == 0 and attributes:
+            estimated_entry_count = len(attributes)
+
+        # 分类模组品质（使用估算词条数作为提示）
+        quality = self.classify_module_quality(attributes, entry_count_hint=estimated_entry_count)
         quality_names = {
             'legendary': '金色',
             'epic': '紫色', 
@@ -430,7 +447,8 @@ class ModuleOCR:
             'attributes': attributes,
             'quality': quality,
             'quality_name': quality_names.get(quality, '未知'),
-            'attribute_count': len(attributes)
+            # attribute_count 使用估算后的词条数量，便于前端展示与分类
+            'attribute_count': int(estimated_entry_count)
         }
     
     def scan_all_modules(self, screenshot_dir: str) -> Dict[str, Dict]:
