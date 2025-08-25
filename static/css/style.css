@@ -259,6 +259,51 @@ body {
     border: 1px solid #404040;
 }
 
+/* 模组卡片品质样式 */
+.module-card.quality-legendary {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    border: 2px solid #daa520;
+}
+
+.module-card.quality-legendary .module-name {
+    color: #1e40af; /* 蓝色文件名 */
+}
+
+.module-card.quality-legendary .attribute-item {
+    background: white;
+    border-left: 3px solid #ffd700;
+}
+
+.module-card.quality-legendary .attribute-name {
+    color: #000000; /* 黑色词条文字 */
+}
+
+.module-card.quality-legendary .attribute-value {
+    color: #059669; /* 绿色词条数值 */
+}
+
+.module-card.quality-epic {
+    background: linear-gradient(135deg, #9932cc, #ba55d3);
+    border: 2px solid #8a2be2;
+}
+
+.module-card.quality-epic .module-name {
+    color: #1e40af; /* 蓝色文件名 */
+}
+
+.module-card.quality-epic .attribute-item {
+    background: white;
+    border-left: 3px solid #9932cc;
+}
+
+.module-card.quality-epic .attribute-name {
+    color: #000000; /* 黑色词条文字 */
+}
+
+.module-card.quality-epic .attribute-value {
+    color: #059669; /* 绿色词条数值 */
+}
+
 .module-attributes {
     display: flex;
     flex-direction: column;
@@ -304,6 +349,19 @@ body {
     border-radius: 6px;
     padding: 10px;
     border-left: 3px solid #6366f1;
+}
+
+/* 组合中模组详细信息的品质样式 */
+.module-detail .module-detail-quality.quality-legendary {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #8b4513;
+    border: 1px solid #daa520;
+}
+
+.module-detail .module-detail-quality.quality-epic {
+    background: linear-gradient(135deg, #9932cc, #ba55d3);
+    color: white;
+    border: 1px solid #8a2be2;
 }
 
 .module-detail-header {
