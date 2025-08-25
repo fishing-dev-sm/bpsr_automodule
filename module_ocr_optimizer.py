@@ -472,7 +472,8 @@ class ModuleOCR:
             'quality_name': quality_names.get(quality, '未知'),
             # 展示的词条数优先使用回退推断结果，以反映真实词条个数
             'attribute_count': max(len(attributes), inferred_entry_count),
-            'inferred_entry_count': inferred_entry_count
+            'inferred_entry_count': inferred_entry_count,
+            'inferred_numbers': unique_numeric_entries
         }
     
     def scan_all_modules(self, screenshot_dir: str) -> Dict[str, Dict]:

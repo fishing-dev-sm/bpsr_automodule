@@ -187,13 +187,28 @@ class ModuleOptimizerApp {
         const qualityClass = this.getQualityClass(moduleData.quality);
         card.classList.add(qualityClass);
 
-        const attributesHtml = Object.entries(moduleData.attributes)
+        let attributesHtml = Object.entries(moduleData.attributes)
             .map(([attrName, value]) => `
                 <div class="attribute-item">
                     <span class="attribute-name">${attrName}</span>
                     <span class="attribute-value">${value}</span>
                 </div>
             `).join('');
+
+        // 若识别的词条不足，使用占位词条补齐显示数量（仅显示“+数字”占位，不映射属性名）
+        const displayedCount = Object.keys(moduleData.attributes).length;
+        const targetCount = moduleData.inferred_entry_count || moduleData.attribute_count || displayedCount;
+        const placeholders = moduleData.placeholder_values || [];
+        if (displayedCount < targetCount && placeholders.length > 0) {
+            const additional = placeholders.slice(0, Math.max(0, targetCount - displayedCount))
+                .map(v => `
+                    <div class="attribute-item">
+                        <span class="attribute-name">(未识别)</span>
+                        <span class="attribute-value">${v}</span>
+                    </div>
+                `).join('');
+            attributesHtml += additional;
+        }
 
         const entryCount = moduleData.attribute_count || Object.keys(moduleData.attributes).length;
         const inferredCount = moduleData.inferred_entry_count || entryCount;
@@ -257,9 +272,19 @@ class ModuleOptimizerApp {
         // 生成模组详细信息HTML
         const moduleDetailsHtml = (combo.module_details || [])
             .map(module => {
-                const attrsHtml = Object.entries(module.attributes)
+                let attrsHtml = Object.entries(module.attributes)
                     .map(([attrName, value]) => `${attrName}+${value}`)
                     .join(', ');
+                // 组合中同样补齐未识别词条的占位
+                const displayed = Object.keys(module.attributes).length;
+                const target = module.inferred_entry_count || module.attribute_count || displayed;
+                const ph = module.placeholder_values || [];
+                if (displayed < target && ph.length > 0) {
+                    const extra = ph.slice(0, Math.max(0, target - displayed))
+                        .map(v => `(+${v})`)
+                        .join(', ');
+                    attrsHtml = attrsHtml ? `${attrsHtml}, ${extra}` : extra;
+                }
                 
                 const qualityClass = this.getQualityClass(module.quality);
                 

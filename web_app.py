@@ -186,12 +186,22 @@ def get_results():
         for attr_key, value in module_data['attributes'].items():
             formatted_attrs[format_attribute_name(attr_key)] = value
         
+        # 计算占位词条（用于显示当识别不足时的推断词条）
+        inferred_numbers = module_data.get('inferred_numbers', [])
+        used_values = list(module_data['attributes'].values())
+        remaining = list(inferred_numbers)
+        for val in used_values:
+            if val in remaining:
+                remaining.remove(val)
+        placeholder_values = remaining  # 尚未被属性占用的数字
+
         formatted_results['modules'][module_name] = {
             'attributes': formatted_attrs,
             'quality': module_data['quality'],
             'quality_name': module_data['quality_name'],
             'attribute_count': module_data.get('attribute_count', len(module_data['attributes'])),
-            'inferred_entry_count': module_data.get('inferred_entry_count', len(module_data['attributes']))
+            'inferred_entry_count': module_data.get('inferred_entry_count', len(module_data['attributes'])),
+            'placeholder_values': placeholder_values
         }
     
     # 格式化分组组合数据
@@ -212,13 +222,22 @@ def get_results():
                         chinese_name = format_attribute_name(attr_key)
                         chinese_attrs[chinese_name] = value
                     
+                    # 计算该模组的占位词条数值
+                    inferred_numbers = module_data.get('inferred_numbers', [])
+                    used_values = list(module_data['attributes'].values())
+                    remaining = list(inferred_numbers)
+                    for val in used_values:
+                        if val in remaining:
+                            remaining.remove(val)
+                    
                     module_details.append({
                         'name': module_name,
                         'attributes': chinese_attrs,
                         'quality': module_data['quality'],
                         'quality_name': module_data['quality_name'],
                         'attribute_count': module_data.get('attribute_count', len(module_data['attributes'])),
-                        'inferred_entry_count': module_data.get('inferred_entry_count', len(module_data['attributes']))
+                        'inferred_entry_count': module_data.get('inferred_entry_count', len(module_data['attributes'])),
+                        'placeholder_values': remaining
                     })
                 else:
                     # 如果找不到模组数据，只显示名称
