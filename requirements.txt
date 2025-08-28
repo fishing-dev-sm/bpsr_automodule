@@ -7,6 +7,10 @@ opencv-python>=4.8.0
 pytesseract>=0.3.10
 Pillow>=10.0.0
 
+# 高精度中文OCR（推荐）
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+
 # Web UI框架
 Flask>=2.0.0
 Flask-CORS>=4.0.0

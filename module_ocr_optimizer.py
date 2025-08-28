@@ -19,9 +19,24 @@ import json
 class ModuleOCR:
     """模组OCR识别类"""
     
-    def __init__(self):
-        # 配置Tesseract OCR路径
+    def __init__(self, engine: str = 'auto'):
+        """初始化OCR引擎
+
+        engine: 'auto' | 'paddle' | 'tesseract'
+        - auto: 自动检测，优先使用 PaddleOCR，失败则回退 Tesseract
+        - paddle: 仅使用 PaddleOCR（不可用则回退 Tesseract）
+        - tesseract: 仅使用 Tesseract
+        """
+        # 引擎选择
+        self.requested_engine = engine
+        self.paddle_available = False
+        self.paddle_ocr = None  # 惰性初始化
+
+        # 配置Tesseract OCR路径（作为回退与备选）
         self.setup_tesseract()
+
+        # 尝试加载 PaddleOCR
+        self._try_init_paddle()
         
         # 游戏中的所有属性名称映射
         self.attribute_names = {
@@ -44,6 +59,22 @@ class ModuleOCR:
         
         # 设置tesseract配置
         self.tesseract_config = '--oem 3 --psm 6 -l chi_sim'
+
+    def _try_init_paddle(self):
+        """尝试初始化 PaddleOCR（仅在可用时）"""
+        if self.requested_engine == 'tesseract':
+            self.paddle_available = False
+            return
+        try:
+            from paddleocr import PaddleOCR  # type: ignore
+            # 惰性创建：第一次真正使用时再实例化，避免加载延迟
+            self.PaddleOCRClass = PaddleOCR
+            self.paddle_available = True
+            print("PaddleOCR 可用，将优先使用中文OCR模型")
+        except Exception as e:
+            self.paddle_available = False
+            if self.requested_engine in ('auto', 'paddle'):
+                print(f"PaddleOCR 不可用，回退到 Tesseract（原因: {str(e)[:120]}）")
     
     def setup_tesseract(self):
         """配置Tesseract OCR路径"""
@@ -101,58 +132,52 @@ class ModuleOCR:
         return cleaned
     
     def extract_numbers_from_image(self, image_path: str) -> List[int]:
-        """专门提取图像中的数字"""
+        """专门提取图像中的数字（优先使用 PaddleOCR）"""
         try:
-            img = cv2.imread(image_path)
-            
-            # 多种数字识别策略
-            numbers = []
-            
-            # 策略1：识别数字和+号，处理"+9"格式
-            config_plus_digits = '--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789+'
-            processed_img = self.preprocess_image(image_path)
-            digit_text1 = pytesseract.image_to_string(processed_img, config=config_plus_digits)
-            # 提取+数字或纯数字
-            numbers.extend(re.findall(r'\+?(\d+)', digit_text1))
-            numbers.extend(re.findall(r'\d+', digit_text1))
-            
-            # 策略2：仅识别数字，排除+号干扰
-            config_digits = '--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
-            digit_text2 = pytesseract.image_to_string(processed_img, config=config_digits)
-            numbers.extend(re.findall(r'\d+', digit_text2))
-            
-            # 策略3：增强对比度后识别
-            enhanced_img = self.enhance_for_digits(img)
-            digit_text3 = pytesseract.image_to_string(enhanced_img, config=config_plus_digits)
-            numbers.extend(re.findall(r'\+?(\d+)', digit_text3))
-            
-            # 策略4：不同PSM模式识别
-            for psm in [6, 7, 13]:
-                config_psm = f'--oem 3 --psm {psm} -c tessedit_char_whitelist=0123456789+'
-                try:
-                    digit_text = pytesseract.image_to_string(processed_img, config=config_psm)
-                    numbers.extend(re.findall(r'\+?(\d+)', digit_text))
-                    numbers.extend(re.findall(r'\d+', digit_text))
-                except:
-                    continue
-            
-            # 转换为整数并过滤合理范围
+            # 若 Paddle 可用，直接用 PaddleOCR 的文本结果来提取数字（更稳定）
+            if self.paddle_available:
+                text = self._paddle_extract_text(image_path)
+                numbers = re.findall(r'\+?(\d+)', text)
+            else:
+                img = cv2.imread(image_path)
+                numbers = []
+                # Tesseract 策略集
+                config_plus_digits = '--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789+'
+                processed_img = self.preprocess_image(image_path)
+                digit_text1 = pytesseract.image_to_string(processed_img, config=config_plus_digits)
+                numbers.extend(re.findall(r'\+?(\d+)', digit_text1))
+                numbers.extend(re.findall(r'\d+', digit_text1))
+                config_digits = '--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
+                digit_text2 = pytesseract.image_to_string(processed_img, config=config_digits)
+                numbers.extend(re.findall(r'\d+', digit_text2))
+                enhanced_img = self.enhance_for_digits(img)
+                digit_text3 = pytesseract.image_to_string(enhanced_img, config=config_plus_digits)
+                numbers.extend(re.findall(r'\+?(\d+)', digit_text3))
+                for psm in [6, 7, 13]:
+                    config_psm = f'--oem 3 --psm {psm} -c tessedit_char_whitelist=0123456789+'
+                    try:
+                        digit_text = pytesseract.image_to_string(processed_img, config=config_psm)
+                        numbers.extend(re.findall(r'\+?(\d+)', digit_text))
+                        numbers.extend(re.findall(r'\d+', digit_text))
+                    except:
+                        continue
+
+            # 过滤到 1-10，并处理大于10取个位
             valid_numbers = []
             for num_str in numbers:
                 try:
                     num = int(num_str)
                     if 1 <= num <= 10:
                         valid_numbers.append(num)
+                    elif num > 10:
+                        digit = num % 10
+                        if 1 <= digit <= 10:
+                            valid_numbers.append(digit)
                 except:
                     continue
-            
-            print(f"  专门数字识别结果:")
-            print(f"    策略1(+数字): {re.findall(r'\\+?(\\d+)', digit_text1)} 原文: {repr(digit_text1[:50])}")
-            print(f"    策略2(纯数字): {re.findall(r'\\d+', digit_text2)} 原文: {repr(digit_text2[:50])}")
-            print(f"    策略3(增强+): {re.findall(r'\\+?(\\d+)', digit_text3)} 原文: {repr(digit_text3[:50])}")
+
             print(f"  最终识别数字: {valid_numbers}")
             return valid_numbers
-            
         except Exception as e:
             print(f"数字识别失败 {image_path}: {str(e)}")
             return []
@@ -182,30 +207,49 @@ class ModuleOCR:
         return enhanced
 
     def extract_text_from_image(self, image_path: str) -> str:
-        """从图像中提取文本"""
+        """从图像中提取文本（优先使用 PaddleOCR）"""
         try:
-            # 方法1：中文文本识别
-            processed_img = self.preprocess_image(image_path)
-            text1 = pytesseract.image_to_string(processed_img, config=self.tesseract_config)
-            
-            # 方法2：原图中文识别
-            original_img = cv2.imread(image_path)
-            text2 = pytesseract.image_to_string(original_img, config=self.tesseract_config)
-            
-            # 方法3：不同PSM模式
-            config_alt = '--oem 3 --psm 6 -l chi_sim'
-            text3 = pytesseract.image_to_string(processed_img, config=config_alt)
-            
-            # 合并文本结果
-            combined_text = f"{text1}\n{text2}\n{text3}"
-            
-            # 调试输出
-            print(f"  OCR文本结果: {repr(combined_text[:150])}")
-            
-            return combined_text.strip()
+            if self.paddle_available:
+                combined_text = self._paddle_extract_text(image_path)
+                print(f"  OCR文本结果(Paddle): {repr(combined_text[:150])}")
+                return combined_text.strip()
+            else:
+                # Tesseract 路径
+                processed_img = self.preprocess_image(image_path)
+                text1 = pytesseract.image_to_string(processed_img, config=self.tesseract_config)
+                original_img = cv2.imread(image_path)
+                text2 = pytesseract.image_to_string(original_img, config=self.tesseract_config)
+                config_alt = '--oem 3 --psm 6 -l chi_sim'
+                text3 = pytesseract.image_to_string(processed_img, config=config_alt)
+                combined_text = f"{text1}\n{text2}\n{text3}"
+                print(f"  OCR文本结果(Tesseract): {repr(combined_text[:150])}")
+                return combined_text.strip()
         except Exception as e:
             print(f"OCR识别失败 {image_path}: {str(e)}")
             return ""
+
+    def _ensure_paddle_instance(self):
+        """确保 PaddleOCR 实例已创建"""
+        if self.paddle_available and self.paddle_ocr is None:
+            # 使用中文模型，开启方向分类
+            self.paddle_ocr = self.PaddleOCRClass(use_angle_cls=True, lang='ch')
+
+    def _paddle_extract_text(self, image_path: str) -> str:
+        """使用 PaddleOCR 提取中文文本，返回合并后的文本"""
+        self._ensure_paddle_instance()
+        if not self.paddle_available or self.paddle_ocr is None:
+            return ""
+        result = self.paddle_ocr.ocr(image_path, cls=True)
+        lines = []
+        try:
+            # result 为 [ [ [box], (text, conf) ], ... ] 的列表结构
+            for line in result[0]:
+                text = line[1][0]
+                if isinstance(text, str) and text.strip():
+                    lines.append(text.strip())
+        except Exception:
+            pass
+        return "\n".join(lines)
     
     def classify_module_quality(self, attributes: Dict[str, int], fallback_entry_count: Optional[int] = None) -> str:
         """根据词条数量分类模组品质
