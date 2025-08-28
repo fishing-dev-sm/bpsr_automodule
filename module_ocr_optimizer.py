@@ -239,14 +239,35 @@ class ModuleOCR:
         self._ensure_paddle_instance()
         if not self.paddle_available or self.paddle_ocr is None:
             return ""
-        result = self.paddle_ocr.ocr(image_path, cls=True)
+        # 不传 cls 参数，避免不同版本 API 差异
+        result = self.paddle_ocr.ocr(image_path)
         lines = []
         try:
-            # result 为 [ [ [box], (text, conf) ], ... ] 的列表结构
-            for line in result[0]:
-                text = line[1][0]
-                if isinstance(text, str) and text.strip():
-                    lines.append(text.strip())
+            # 兼容两种返回：
+            # 1) 直接为行列表：[[box], (text, conf)]
+            # 2) 外层包了一层：[[[box], (text, conf)], ...]
+            lines_iter = None
+            if isinstance(result, list) and result:
+                # 情况2：外层包一层
+                first = result[0]
+                if isinstance(first, list) and first and isinstance(first[0], list) and len(first[0]) == 2:
+                    # 形如 result = [[line, line, ...]]
+                    lines_iter = first
+                else:
+                    # 情况1：直接为行列表
+                    lines_iter = result
+
+            if lines_iter is None:
+                return ""
+
+            for line in lines_iter:
+                # line: [box, (text, score)]
+                if isinstance(line, (list, tuple)) and len(line) >= 2:
+                    meta = line[1]
+                    if isinstance(meta, (list, tuple)) and meta and isinstance(meta[0], str):
+                        text = meta[0]
+                        if text.strip():
+                            lines.append(text.strip())
         except Exception:
             pass
         return "\n".join(lines)
