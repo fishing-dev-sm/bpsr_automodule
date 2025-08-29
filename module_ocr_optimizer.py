@@ -138,6 +138,30 @@ class ModuleOCR:
             if self.paddle_available:
                 text = self._paddle_extract_text(image_path)
                 numbers = re.findall(r'\+?(\d+)', text)
+                if not numbers:
+                    print("PaddleOCR 数字为空，回退到 Tesseract 数字识别")
+                    # 回退到 Tesseract 数字策略
+                    img = cv2.imread(image_path)
+                    numbers = []
+                    config_plus_digits = '--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789+'
+                    processed_img = self.preprocess_image(image_path)
+                    digit_text1 = pytesseract.image_to_string(processed_img, config=config_plus_digits)
+                    numbers.extend(re.findall(r'\+?(\d+)', digit_text1))
+                    numbers.extend(re.findall(r'\d+', digit_text1))
+                    config_digits = '--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
+                    digit_text2 = pytesseract.image_to_string(processed_img, config=config_digits)
+                    numbers.extend(re.findall(r'\d+', digit_text2))
+                    enhanced_img = self.enhance_for_digits(img)
+                    digit_text3 = pytesseract.image_to_string(enhanced_img, config=config_plus_digits)
+                    numbers.extend(re.findall(r'\+?(\d+)', digit_text3))
+                    for psm in [6, 7, 13]:
+                        config_psm = f'--oem 3 --psm {psm} -c tessedit_char_whitelist=0123456789+'
+                        try:
+                            digit_text = pytesseract.image_to_string(processed_img, config=config_psm)
+                            numbers.extend(re.findall(r'\+?(\d+)', digit_text))
+                            numbers.extend(re.findall(r'\d+', digit_text))
+                        except:
+                            continue
             else:
                 img = cv2.imread(image_path)
                 numbers = []
@@ -211,19 +235,25 @@ class ModuleOCR:
         try:
             if self.paddle_available:
                 combined_text = self._paddle_extract_text(image_path)
-                print(f"  OCR文本结果(Paddle): {repr(combined_text[:150])}")
-                return combined_text.strip()
+                if combined_text.strip():
+                    print(f"  OCR文本结果(Paddle): {repr(combined_text[:150])}")
+                    return combined_text.strip()
+                else:
+                    print("PaddleOCR 返回空文本，回退到 Tesseract OCR")
+                    # 继续执行到 Tesseract 分支
             else:
                 # Tesseract 路径
-                processed_img = self.preprocess_image(image_path)
-                text1 = pytesseract.image_to_string(processed_img, config=self.tesseract_config)
-                original_img = cv2.imread(image_path)
-                text2 = pytesseract.image_to_string(original_img, config=self.tesseract_config)
-                config_alt = '--oem 3 --psm 6 -l chi_sim'
-                text3 = pytesseract.image_to_string(processed_img, config=config_alt)
-                combined_text = f"{text1}\n{text2}\n{text3}"
-                print(f"  OCR文本结果(Tesseract): {repr(combined_text[:150])}")
-                return combined_text.strip()
+                pass
+            # Tesseract 回退或直接路径
+            processed_img = self.preprocess_image(image_path)
+            text1 = pytesseract.image_to_string(processed_img, config=self.tesseract_config)
+            original_img = cv2.imread(image_path)
+            text2 = pytesseract.image_to_string(original_img, config=self.tesseract_config)
+            config_alt = '--oem 3 --psm 6 -l chi_sim'
+            text3 = pytesseract.image_to_string(processed_img, config=config_alt)
+            combined_text = f"{text1}\n{text2}\n{text3}"
+            print(f"  OCR文本结果(Tesseract): {repr(combined_text[:150])}")
+            return combined_text.strip()
         except Exception as e:
             print(f"OCR识别失败 {image_path}: {str(e)}")
             return ""
